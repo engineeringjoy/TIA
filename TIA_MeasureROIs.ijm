@@ -46,18 +46,15 @@ open(impath);											// Open the image
 // *** SETUP VARIABLES BASED ON FILENAME & PATH ***
 fn = File.name;											// Save the filename (with extension)
 fnBase = File.getNameWithoutExtension(impath);			// Get image name
-fnROIs = fnBase+".ROIs."+timeStamp+".zip";				// Filename for ROI set generated
-fnSS = fnBase+".SS";									// Filename for substack generated
+fnROIs = fnBase+".ROIs.zip";				// Filename for ROI set generated
 fnMP = fnBase+".MP";									// Filenmae for max projection generated
-fnMD = fnBase+".MD.csv";								// Filename for metadata from the tracing process
+fnRVs = fnBase+".ROIVals.csv";							// Filename for metadata from the tracing process
 wd = File.getDirectory(impath);							// Gets path to where the image is stored
 rootInd = lastIndexOf(wd, fdSave);					    // Gets index in string for where root directory ends
 root = substring(wd, 0, rootInd);						// Creates path to root directory
 dirTIA = root+"/TIA_MeasureROIs.Results/";				// Main directory for all things generated via TIA_MeasureROIs
 dirROIs = dirTIA+"ROIs/";								// Subdirectory for all ROI.zip files generated from each tracing session
-dirSRs = dirTIA+"SingleROIViews/";						// Subdirectory for single ROI views saved as .tif 
-dirMD = dirTIA+"Metadata/";								// Subdirectory for metadata related to each tracing session
-dirSSs = dirTIA+"Substacks/";							// Subdirectory for substacks generated for each original z-stack
+dirRVs = dirTIA+"ROIVals/";								// Subdirectory for metadata related to each tracing session
 dirMPs = dirTIA+"MaxProjections/";						// Subdirectory for max projections generated for each original z-stack
 
 // *** SETUP DIRECTORIES IF APPLICABLE ***
@@ -67,26 +64,18 @@ if (!File.isDirectory(dirTIA)) {
 	if (!File.isDirectory(dirROIs)) {
 		// Create subdirectories
 		File.makeDirectory(dirROIs);
-		File.makeDirectory(dirSRs);
-		File.makeDirectory(dirMD);
-		File.makeDirectory(dirSSs);
+		File.makeDirectory(dirRVs);
 		File.makeDirectory(dirMPs);
 	}
 }
 
 // Create a metadata sheet for the image -- Current code assumes image has not yet been traced and will save over existing
 //       This approach will be changed in the future to instead just update the sheet if it exists
-initResTable(dirMD+fnMD);
+initResTable(dirRVs+fnRVs);
 
 
 // *** HAVE USER MAKE SUBSTACK ***
 Stack.getDimensions(width, height, channels, slices, frames);
-/*
-for (i = 0; i <= channels; i++) {
-	Stack.setChannel(i);
-	run("HiLo");
-}
-*/
 
 waitForUser("Examine the Z-stack and choose which images to include in the max projection.\n"+
 	"You will enter the specifications in the next dialog box.");
@@ -107,9 +96,8 @@ slStart = Dialog.getString();
 slEnd = Dialog.getString();
 chTrace = Dialog.getString();
 
-// Make the substack to spec and save
+// Make the substack to spec 
 run("Make Substack...", "channels="+chStart+"-"+chEnd+" slices="+slStart+"-"+slEnd);
-saveAs("Tiff",dirSSs+fnSS+".tif");
 Stack.getDimensions(width, height, channels, slices, frames);					// Update dimensions
 
 // Create the max projection to be used as a tracing guide
@@ -126,12 +114,14 @@ Stack.setChannel(chTrace);
 waitForUser("Select your tracing tool of choice icon in the toolbar (oval or freehand are suggested for somata).\n"+
 	"In the ROI Manager window select 'Show All' and 'Labels'.\n"+
 	"After this you'll begin tracing ROIs and adding them to the ROI manager.\n"+
-	"Use the shortcut keys 'Ctrl+t' or 'CMD+t' to quickly add the ROIs.");
+	"Use the shortcut keys 't' to quickly add the ROIs.");
 	
 // Trace and save the ROI, create the Single ROI View
-//setTool("oval");
-waitForUser("Trace an then add it the ROI to the manager.\n"+
-			"Trace as many ROIs as desired, then click 'OK' to save the set.");
+waitForUser("~* WAIT TO CLICK OK *~.\n"+
+			"Trace an then add it the ROI to the manager.\n"+
+			"Trace as many ROIs as desired, then click 'OK' to save the set.\n"+
+			"To continue working on an ROI set, open the .zip file using ROI manager.\n"+
+			"Do not click 'ok' until all desired ROIs have been added to the manager.\n");
 
 // *** BEGIN PROCESSING TRACES ***
 
@@ -160,6 +150,9 @@ for (i = 0; i < n; i++) {
 	setResult("slice_end",i, slEnd);
 	setResult("roi",i, "ROI_"+i);					// ROI ID is saved based on index
 	setResult("roiArea", i, area);
+	setResult("channels",i,channels);
+	setResult("slices",i,slices);
+	setResult("frames",i,frames);
 	updateResults();
 
     // Iterate through the channels and measure the grey values for the ROI
@@ -176,9 +169,10 @@ roiManager("save", dirROIs+fnROIs);
 
 // Save the metadata from tracing
 selectWindow("Results");
-saveAs("Results", dirMD+fnMD);
+saveAs("Results", dirRVs+fnRVs);
 
-waitForUser("Take a screenshot of the max projection with all ROIs shown then click 'OK' to exit.");
+waitForUser("Take a screenshot of the max projection with all ROIs shown then click 'OK' to exit.\n"+
+			"To show all ROIs make sure 'Show All' and 'Labels' are checked in the ROI manager.");
 close("*");
 exit;
 
