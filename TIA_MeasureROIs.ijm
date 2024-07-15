@@ -20,7 +20,7 @@
  */
  // Enter the name of the folder where the images are stored
  //  do not include the path to the folder
-fdSave = "CZIs"
+fdSave = "RawImages";
 
  
  /* 
