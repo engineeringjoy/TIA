@@ -47,17 +47,15 @@ while (choice[0] != 'EXIT') {
 	n = 3;
 	for (i = 0; i < n; i++) {
 		turn = i+1;
-		//id = "WSS_"+batchID+sampID+".T"+turn+".Zs.4C.MPI";
 		id = "WSS_"+batchID+sampID+".T"+turn+".01.Zs.1C.MPI";
-		//id = "WSS_"+batchID+sampID+".T"+turn+".Zs.3C.MPI";
+		//id = "WSS_"+batchID+sampID+".T"+turn+".01.Zs.1C.MPI";
+		//id = "WSS_"+batchID+sampID+".T"+turn+".01.Zs.2C.MPI";
 		dirIms = dirID+"Raw_10x/MPIs/"+id+"/";
-		print(id);
-		print(dirIms);
-		//imID = id+"_c1+2+3+4.png";
+		imID = id+".png";
 		//imID = id+"_c1+2.png";
 		//imID = id+"_c1+2+3.png";
 		//imID = id+"_c2.png";
-		imID = id+".png";
+		//imID = id+".png";
 		open(dirIms+imID);
 		
 	
@@ -93,7 +91,7 @@ function getUserChoice() {
 	options = Array.concat("CONTINUE", "EXIT");
 	Dialog.create("Frequencing Mapping");
 	Dialog.addChoice("Proceed with freq. mapping?", options);
-	Dialog.addString("Batch Number",'026');
+	Dialog.addString("Batch Number",'050');
 	Dialog.addString("Sample Number",'.01');
 	Dialog.setLocation(x_d,y_d);
 	Dialog.show();
